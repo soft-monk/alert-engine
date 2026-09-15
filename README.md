@@ -26,7 +26,7 @@
 | 文档 | 内容 |
 |---|---|
 | [`docs/需求/alert-engine需求专篇.md`](docs/需求/alert-engine需求专篇.md) | 需求专篇（唯一权威）：条目编号、验收标准、边界、决策记录、风险、验收清单 |
-| [业务引擎需求专篇 · 汇总索引](https://github.com/soft-monk/mission-engine-docs/blob/main/业务引擎需求专篇_汇总索引.md) | 十个业务引擎的索引、共性口径、跨模块冲突与建仓顺序 |
+| [业务引擎需求专篇 · 汇总索引](https://github.com/soft-monk/phase-engine/blob/main/docs/需求/业务引擎需求专篇_汇总索引.md) | 十个业务引擎的索引、共性口径、跨模块冲突与建仓顺序 |
 
 ## 状态
 
