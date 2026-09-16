@@ -1,0 +1,209 @@
+{
+  "policiesNamespace": "mapapp",
+  "schemaVersion": "1.0.0",
+  "kind": "alertRules",
+
+  "levels": [
+    { "key": "info",  "name": "信息", "rank": 1, "color": "blue" },
+    { "key": "warn",  "name": "警告", "rank": 2, "color": "yellow" },
+    { "key": "error", "name": "严重", "rank": 3, "color": "red" }
+  ],
+
+  "items": [
+    {
+      "key": "node-offline",
+      "version": "1.0.0",
+      "enabled": true,
+      "level": "error",
+      "title": "节点 {entityId} 失联",
+      "condition": {
+        "type": "duration",
+        "forMs": 3000,
+        "condition": {
+          "type": "threshold",
+          "source": "deviceHealth",
+          "field": "online",
+          "operator": "eq",
+          "value": false
+        }
+      },
+      "dedupWindowMs": 10000,
+      "merge": "accumulate",
+      "recoverOn": "record",
+      "suppressChildren": true,
+      "confirmCount": 1
+    },
+    {
+      "key": "link-quality",
+      "version": "1.0.0",
+      "enabled": true,
+      "level": "warn",
+      "title": "链路 {entityId} 质量差（信号 {value}）",
+      "condition": {
+        "type": "threshold",
+        "source": "telemetry.link.quality",
+        "field": "signal",
+        "operator": "lt",
+        "value": 0.45
+      },
+      "dedupWindowMs": 10000,
+      "merge": "latest",
+      "recoverOn": "close",
+      "parent": "node-offline",
+      "confirmCount": 2,
+      "minDwellMs": 500
+    },
+    {
+      "key": "node-offline-escalate",
+      "version": "1.0.0",
+      "enabled": true,
+      "level": "error",
+      "title": "节点 {entityId} 失联超时（累计 {value} 次）",
+      "condition": {
+        "type": "duration",
+        "forMs": 30000,
+        "condition": {
+          "type": "threshold",
+          "source": "deviceHealth",
+          "field": "online",
+          "operator": "eq",
+          "value": false
+        }
+      },
+      "dedupWindowMs": 60000,
+      "merge": "accumulate",
+      "recoverOn": "close"
+    },
+    {
+      "key": "link-degraded-persistent",
+      "version": "1.0.0",
+      "enabled": true,
+      "level": "error",
+      "title": "链路 {entityId} 受限持续（信号 {value}）",
+      "condition": {
+        "type": "duration",
+        "forMs": 5000,
+        "condition": {
+          "type": "threshold",
+          "field": "signal",
+          "operator": "lt",
+          "value": 0.45
+        }
+      },
+      "dedupWindowMs": 15000,
+      "merge": "accumulate",
+      "recoverOn": "close",
+      "confirmCount": 2,
+      "minDwellMs": 1000
+    },
+    {
+      "key": "target-hazard-zone",
+      "version": "1.0.0",
+      "enabled": false,
+      "level": "error",
+      "title": "目标 {entityId} 进入高危区",
+      "condition": {
+        "type": "bool",
+        "logic": "allOf",
+        "conditions": [
+          { "type": "threshold", "field": "inHazardZone", "operator": "eq", "value": true },
+          { "type": "threshold", "field": "dangerLevel", "operator": "gte", "value": 0.8 }
+        ]
+      },
+      "dedupWindowMs": 30000,
+      "merge": "latest",
+      "recoverOn": "record"
+    },
+    {
+      "key": "session-degraded",
+      "version": "1.0.0",
+      "enabled": true,
+      "level": "warn",
+      "title": "链路 {entityId} 弱链路且丢包（信号 {signal}，丢包 {lossRate}）",
+      "condition": {
+        "type": "bool",
+        "logic": "allOf",
+        "conditions": [
+          { "type": "threshold", "field": "signal", "operator": "lt", "value": 0.6 },
+          { "type": "threshold", "field": "lossRate", "operator": "gt", "value": 0.05 },
+          {
+            "type": "duration",
+            "forMs": 5000,
+            "condition": { "type": "threshold", "field": "signal", "operator": "lt", "value": 0.6 }
+          }
+        ]
+      },
+      "dedupWindowMs": 20000,
+      "merge": "accumulate",
+      "recoverOn": "close"
+    },
+    {
+      "key": "link-restored",
+      "version": "1.0.0",
+      "enabled": true,
+      "level": "info",
+      "title": "链路 {entityId} 已恢复",
+      "condition": {
+        "type": "recovery",
+        "condition": {
+          "type": "threshold",
+          "field": "signal",
+          "operator": "lt",
+          "value": 0.45
+        }
+      },
+      "dedupWindowMs": 10000,
+      "merge": "accumulate",
+      "recoverOn": "none"
+    },
+    {
+      "key": "progress-lag",
+      "version": "1.0.0",
+      "enabled": true,
+      "level": "info",
+      "title": "任务 {missionId} 推进速率偏低（{value}）",
+      "missionId": "mission-1",
+      "condition": {
+        "type": "threshold",
+        "source": "mission.progress",
+        "field": "ratePerMin",
+        "operator": "lt",
+        "value": 1.0
+      },
+      "dedupWindowMs": 60000,
+      "merge": "accumulate",
+      "recoverOn": "none",
+      "cooldownMs": 30000
+    },
+    {
+      "key": "sensor-missing",
+      "version": "1.0.0",
+      "enabled": true,
+      "level": "warn",
+      "title": "设备 {entityId} 传感器读数缺失",
+      "condition": {
+        "type": "threshold",
+        "field": "sensorReading",
+        "operator": "missing"
+      },
+      "dedupWindowMs": 15000,
+      "merge": "accumulate",
+      "recoverOn": "close",
+      "confirmCount": 3
+    }
+  ],
+
+  "storm": {
+    "enabled": true,
+    "windowMs": 1000,
+    "maxRaised": 50,
+    "level": "error",
+    "title": "告警风暴：{windowMs} 毫秒内新增超过 {maxRaised} 条，已折叠 {folded} 条（最近来自规则 {ruleId}）",
+    "countActive": false
+  },
+
+  "mute": {
+    "defaultMs": 300000,
+    "maxMs": 3600000
+  }
+}
